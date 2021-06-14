@@ -22,9 +22,9 @@ git clone https://anonymous.4open.science/r/CTVI-master-6687
 
 ```extract_city_volume_info.py``` is adpoted  to extract and process raw city traffic volume data. 
 
-```FNN.py``` is the implemention of three layers '''MLP'''.
+```FNN.py``` is the implemention of three layers ```MLP```.
 
-```jinan_optuna.py``` is the implemention of our model on Jinan dataset. You can run and evaluate the model by executing this code file.  And if you want to change the range of optuna hyperparameters, you can modify the '''objective''' function in '''jinan_optuna.py''' file. 
+```jinan_optuna.py``` is the implemention of our model on Jinan dataset. You can run and evaluate the model by executing this code file.  And if you want to change the range of optuna hyperparameters, you can modify the ```objective``` function in ```jinan_optuna.py``` file. 
 
 ```metrics.py``` is used to evaluate our model and print log information.
 
