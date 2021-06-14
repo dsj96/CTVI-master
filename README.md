@@ -1,9 +1,7 @@
 # CTVI-master
 For  ICDM 2021.
-
 The implementation of the CTVI model(**C**itywide **T**raffic **V**olume **I**nference).
-
-Paper: 'Temporal Multi-view Graph Convolutional Networks for Citywide Traffic Volume Inference'
+Paper: ```Temporal Multi-view Graph Convolutional Networks for Citywide Traffic Volume Inference```
 
 # Usage:
 ## Install dependencies
