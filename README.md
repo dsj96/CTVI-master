@@ -25,12 +25,16 @@ git clone https://anonymous.4open.science/r/CTVI-master-6687
 
 # Data
 We conduct our experiments on Hangzhou and Jinan cities in China. Due to privacy issues, we public part of the Jinan traffic vloume data in an anonymous form.
-
+We are processing data, update later...
 ## Split Data
 We randomly split the road segments with traffic volume data into training ```(80%)``` and testing ```(20%)```, respectively. We further select 20% of the training randomly as
 validation. Note that for the selected road segments used for testing, we completely masked its traffic volume information. Afterwards we use ```CTVI``` model to inference the traffic volume values.
 
 ## Data Format
-```roadnet.txt``` intersection0_intersection1, num_of_lanes, speed limit, road segment name
+```roadnet.txt```: ```intersection0_intersection1```, ```num_of_lanes```, ```speed limit```, ```road segment name```
+```cams_attr.txt```: ```sensor ID```, ```intersection0_intersection1```, ```num_of_lanes```, ```road grade```, ```speed limit```, ```road segment name```
 
-```cams_attr.txt``` sensor ID, intersection0_intersection1, num_of_lanes, road grade, speed limit, road segment name
+# Training and Evaluate
+You can train and evaluate the model by run ```jinan_optuna.py``` file.
+
+
