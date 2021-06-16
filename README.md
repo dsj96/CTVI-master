@@ -35,7 +35,7 @@ git clone https://anonymous.4open.science/r/CTVI-master-6687
 ```jinan.zip``` file is mainly to provide a toyset to run.
 
 # Data
-We conduct our experiments on Hangzhou and Jinan cities in China. Due to privacy issues, we public part of the Jinan traffic vloume data in an anonymous form.
+We conduct our experiments on Hangzhou and Jinan cities in China. Due to <u>privacy issues</u>, we public part of the Jinan traffic vloume data in an anonymous form.
 We are processing data, update later... detalis see ```jinan.zip``` file(just unzip the file under the current file path).
 ## Split Data
 We randomly split the road segments with traffic volume data into training ```(80%)``` and testing ```(20%)```, respectively. We further select 20% of the training randomly as
