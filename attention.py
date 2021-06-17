@@ -104,6 +104,6 @@ if __name__ == "__main__":
     '''position encoder'''
     # input_data = torch.tensor([[[1,0,1,0],[0,2,0,2],[1,1,1,1]], [[1,0,1,0],[0,2,0,2],[1,1,1,1]] ],dtype=torch.float32)
     # print("input_data:\n",input_data)
-    # positional_encoder = PositionalEncoder(d_model=4)
+    # positional_encoder = PositionalEncoder(d_model=4) # 该参数代表输出的嵌入维度，因为需要和输入的
     # output_data = positional_encoder(input_data)
     # print("output_data:\n", output_data)

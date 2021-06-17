@@ -55,6 +55,9 @@ def get_args():
     parser.add_argument('--model', type=str, default="GCN",
                         choices=["SGC", "GCN"], help='model to use.')
 
+    parser.add_argument('--k_knn', type=int, default=5,
+                        choices=[2, 3, 4, 5, 6, 7, 8, 9], help='select the k for knn.')
+
     parser.add_argument('--degree', type=int, default=2,
                         help='degree of the approximation.')
 

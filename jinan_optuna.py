@@ -12,10 +12,11 @@ self.optimizer = optim.Adam(itertools.chain(self.encoder.parameters(), self.deco
 
 from utils import *
 from args import *
-from models import *
+from CTVI_model import *
 from metrics import *
 from walk import RWGraph
 from extract_city_volume_info import *
+from extract_features_graph import *
 from attention import Multi_Head_SelfAttention
 
 def matched_cams_plot(way_segments_cams_dict, matched_road_id_list):
@@ -41,14 +42,11 @@ def objective(trial):
     '''0.optuna hyper-parameters'''
     config = {
         "epochs" : trial.suggest_int('epochs',  10, 10),
-        "hy_RW"  : trial.suggest_uniform('hy_RW' , 0.1, 10), # 7.229532451922468, 7.229532451922468
-        "hy_volume_current" : trial.suggest_uniform('hy_volume_current' , 0.1, 10), # 8.000282368653435, 8.000282368653435
-        "hy_volume_recent"  : trial.suggest_uniform('hy_volume_recent' , 0.1, 10), #  0.3680750182157313,  0.3680750182157313
-        "hy_volume_daily"   : trial.suggest_uniform('hy_volume_daily' ,  0.1, 10), #   3.268632890232799, 3.268632890232799
-        "hy_volume_weekly"  : trial.suggest_uniform('hy_volume_weekly' ,  0.1, 10), #  6.459585633045093, 6.459585633045093
-        'hy_unvolume_recent' : trial.suggest_uniform('hy_unvolume_recent' , 0.1, 10),
-        'hy_unvolume_daily'  : trial.suggest_uniform('hy_unvolume_daily' , 0.1, 10),
-        'hy_unvolume_weekly' : trial.suggest_uniform('hy_unvolume_weekly' , 0.1, 10),
+        "hy_RW"  : trial.suggest_uniform('hy_RW' , 0.1, 10),
+        "hy_volume_current" : trial.suggest_uniform('hy_volume_current' , 0.1, 10),
+        "hy_volume_recent"  : trial.suggest_uniform('hy_volume_recent' , 0.1, 10),
+        "hy_volume_daily"   : trial.suggest_uniform('hy_volume_daily' ,  0.1, 10),
+        "hy_volume_weekly"  : trial.suggest_uniform('hy_volume_weekly' ,  0.1, 10),
     }
 
     args = get_args()
@@ -84,13 +82,15 @@ def objective(trial):
 
     ''''process features adj '''
     features = np.zeros((len(G_edge_list_attr),7),dtype=np.float32)
-    adj = nx.adjacency_matrix(G_2)
+    sadj = nx.adjacency_matrix(G_2)
     if args.cuda:
         features = feature_process_jinan(features, G_edge_list_attr).to(device='cuda') # FloatTensor
-        adj = preprocess_adj(adj, normalization=args.normalization).to('cuda')
+        sadj = preprocess_adj(sadj, normalization=args.normalization).to('cuda')
+        fadj = load_feature_graph('jinan', features, args.k_knn).to('cuda')
     else:
         features = feature_process_jinan(features, G_edge_list_attr).to(device='cpu')
-        adj = preprocess_adj(adj, normalization=args.normalization).to('cpu')
+        sadj = preprocess_adj(sadj, normalization=args.normalization).to('cpu')
+        fadj = load_feature_graph('jinan', features, args.k_knn).to('cpu')
 
 
     '''normallize'''
@@ -117,11 +117,9 @@ def objective(trial):
 
 
     '''train & evaluate model'''
-    model = JINAN_model(model_type=args.model, num_head=args.num_head ,num_slice=args.num_slice, nfeat=features.shape[1], nhid=args.hidden, nclass=args.output_dim, dropout=args.dropout, degree=args.degree)
+    model = JINAN_model(num_head=args.num_head ,num_slice=args.num_slice, nfeat=features.shape[1], nhid=args.hidden, nclass=args.output_dim, dropout=args.dropout, degree=args.degree)
 
-    if args.model == "GCN":
-        weight_adj_list = 0.
-        leida_pre_MAPE_info_y, leida_pre_MAPE_info_y_head, leida_pre_RMSE_info, mean_mape = train_regression(model, weight_adj_list, features, train_ways_segment_volume_dict, test_ways_segment_volume_dict, unnormed_ways_segment_volume_dict, volume_sqrt_var_list, volume_mean_list, G_2, adj, args.weight_decay, args.lr, args.dropout, config)
+    leida_pre_MAPE_info_y, leida_pre_MAPE_info_y_head, leida_pre_RMSE_info, mean_mape = train_regression(model, features, train_ways_segment_volume_dict, test_ways_segment_volume_dict, unnormed_ways_segment_volume_dict, volume_sqrt_var_list, volume_mean_list, G_2, sadj, fadj, args.weight_decay, args.lr, args.dropout, config)
 
     show_pre_info(leida_pre_MAPE_info_y, leida_pre_RMSE_info, way_segments_cams_dict)
     print("over!")
@@ -525,8 +523,8 @@ def objective_rw( train_ways_segment_vec_dict, negk, adj_weight_dict, output, vo
     return loss_term
 
 
-def train_regression(model, weight_adj_list, train_features, train_ways_segment_volume_dict,
-                     test_ways_segment_volume_dict, unnormed_ways_segment_volume_dict, volume_sqrt_var, volume_mean, G, adj,
+def train_regression(model, train_features, train_ways_segment_volume_dict,
+                     test_ways_segment_volume_dict, unnormed_ways_segment_volume_dict, volume_sqrt_var, volume_mean, G, sadj, fadj,
                      weight_decay, lr, dropout, config ):
     epochs = config['epochs']
     hy_RW = config['hy_RW']
@@ -534,9 +532,7 @@ def train_regression(model, weight_adj_list, train_features, train_ways_segment_
     hy_volume_recent = config['hy_volume_recent']
     hy_volume_daily = config['hy_volume_daily']
     hy_volume_weekly = config['hy_volume_weekly']
-    # hy_unvolume_recent = config['hy_unvolume_recent']
-    # hy_unvolume_daily = config['hy_unvolume_daily']
-    # hy_unvolume_weekly = config['hy_unvolume_weekly']
+
 
 
     '''objective_rw'''
@@ -572,10 +568,8 @@ def train_regression(model, weight_adj_list, train_features, train_ways_segment_
         train_ways_segment_vec_dict = {}
         model.train()
         optimizer.zero_grad()
-        if args.model == "SGC":
-            output = model(train_features, weight_adj_list)
-        if args.model == "GCN":
-            output = model(train_features, adj)
+
+        output = model(train_features, sadj, fadj)
 
         for i, item in enumerate(train_ways_segment_list):
             train_ways_segment_vec_dict[item] = output[:, item, :]
@@ -597,10 +591,7 @@ def train_regression(model, weight_adj_list, train_features, train_ways_segment_
                 with torch.no_grad():
                     train_ways_segment_vec_dict = {}
                     model.eval()
-                    if args.model == "SGC":
-                        output = model(weight_adj_list, train_features)
-                    if args.model == "GCN":
-                        output = model(train_features, adj)
+                    output = model(train_features, sadj, fadj)
                     for i, item in enumerate(train_ways_segment_list):
                         train_ways_segment_vec_dict[item] = output[:, item]
 

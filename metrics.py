@@ -9,7 +9,7 @@ import numpy as np
 import time
 
 from utils import inverse_norm
-from plot_fig.histogram import plot_histogram
+# from plot_fig.histogram import plot_histogram
 
 
 def accuracy(output, labels):
