@@ -40,8 +40,9 @@ We are processing data, update later... detalis see ```jinan.zip``` file(just un
 ## Split Data
 We randomly split the road segments with traffic volume data into training ```(80%)``` and testing ```(20%)```, respectively. We further select 20% of the training randomly as
 validation. 
+yf
 
-Note that for the selected road segments used for testing, we completely masked its traffic volume information. Afterwards we use ```CTVI``` model to inference the traffic volume values.
+Note that for the selected road segments used for testing, we completely masked its traffic volume information in all time slice. Afterwards we use ```CTVI``` model to inference the traffic volume values in each time slice.
 
 ### Roadnet Data Format
 ```roadnet.txt```: intersection0_intersection1, num_of_lanes, speed limit, road segment name
