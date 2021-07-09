@@ -41,7 +41,7 @@ The preprocessed data is included in jinan.zip file (just unzip the file under
 ## Split Data
 We randomly split the road segments with traffic volume data into training ```(80%)``` and testing ```(20%)```, respectively. We further select 20% of the training randomly as
 validation. 
-yf
+
 
 Note that for the selected road segments used for testing, we completely masked its traffic volume information in all time slice. Afterwards we use ```CTVI``` model to inference the traffic volume values in each time slice.
 
