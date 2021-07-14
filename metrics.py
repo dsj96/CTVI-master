@@ -51,10 +51,10 @@ def RMSE(pre_volume, true_volume):
 
 
 def show_info(epoch, leida, time_slice_volume, unnormed_ways_segment_volume_dict):
-    if len(time_slice_volume) == 12:
-        file_path = "hangzhou"
-    else:
-        file_path = "jinan"
+    # if len(time_slice_volume) == 12:
+    #     file_path = "hangzhou"
+    # else:
+    file_path = "jinan"
     with open("{}\log\{}_epoch_{}_roadid_{}_log.txt".format(file_path,time.strftime('%Y_%m_%d_%H_%M_%S',time.localtime(time.time())),epoch,leida), "w", encoding='utf-8') as f:
         # print("cur_raod id:{}".format(leida))
         f.write("cur_raod id:{}\n".format(leida))
