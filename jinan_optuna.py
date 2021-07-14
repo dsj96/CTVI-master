@@ -109,7 +109,12 @@ def objective(trial):
         data_feature, data_target = preprocess_split_data(unnormed_ways_segment_volume_dict)
         train_volume_arr, test_volume_arr, train_leida_id_arr, test_leida_id_arr = \
                 train_test_split(data_feature, data_target, test_size=args.percent, random_state=args.seed)
+
+        train_volume_arr_, valid_volume_arr, train_leida_id_arr_, valid_leida_id_arr = \
+                train_test_split(train_volume_arr, train_leida_id_arr, test_size=args.percent, random_state=args.seed)
+
         train_ways_segment_volume_dict = combine_ways_segment_volume_dict(train_leida_id_arr, train_volume_arr)
+        valid_ways_segment_volume_dict = combine_ways_segment_volume_dict(valid_leida_id_arr, valid_volume_arr)
         test_ways_segment_volume_dict  = combine_ways_segment_volume_dict(test_leida_id_arr, test_volume_arr)
 
 
@@ -119,11 +124,12 @@ def objective(trial):
     '''train & evaluate model'''
     model = JINAN_model(num_head=args.num_head ,num_slice=args.num_slice, nfeat=features.shape[1], nhid=args.hidden, nclass=args.output_dim, dropout=args.dropout, degree=args.degree)
 
-    leida_pre_MAPE_info_y, leida_pre_MAPE_info_y_head, leida_pre_RMSE_info, mean_mape = train_regression(model, features, train_ways_segment_volume_dict, test_ways_segment_volume_dict, unnormed_ways_segment_volume_dict, volume_sqrt_var_list, volume_mean_list, G_2, sadj, fadj, args.weight_decay, args.lr, args.dropout, config)
-
+    leida_pre_MAPE_info_y, leida_pre_MAPE_info_y_head, leida_pre_RMSE_info, mean_mape = train_regression(model, features, train_ways_segment_volume_dict, valid_ways_segment_volume_dict, unnormed_ways_segment_volume_dict, volume_sqrt_var_list, volume_mean_list, G_2, sadj, fadj, args.weight_decay, args.lr, args.dropout, config)
     show_pre_info(leida_pre_MAPE_info_y, leida_pre_RMSE_info, way_segments_cams_dict)
+    print("="*40)
+    test_regression(model, features, train_ways_segment_volume_dict, test_ways_segment_volume_dict, unnormed_ways_segment_volume_dict, volume_sqrt_var_list, volume_mean_list, sadj, fadj, config)
+    print("="*40)
     print("over!")
-
     return mean_mape
 
 
@@ -587,7 +593,8 @@ def train_regression(model, train_features, train_ways_segment_volume_dict,
         optimizer.step()
 
         if (epoch) % 2 == 0:
-            with open('jinan/train_log.txt', 'a', encoding='utf-8') as f:
+            print('validing...')
+            with open('jinan/valid_log.txt', 'a', encoding='utf-8') as f:
                 with torch.no_grad():
                     train_ways_segment_vec_dict = {}
                     model.eval()
@@ -617,6 +624,47 @@ def train_regression(model, train_features, train_ways_segment_volume_dict,
     train_time = perf_counter()-t
     print('In this trial, avg_mape_y:{},  avg_mape_y_head:{},   avg_RMSE：{}'.format(np.mean(all_epoch_mape_y), np.mean(all_epoch_mape_y_head), np.mean(all_epoch_RMSE)))
     return leida_pre_MAPE_info_y, leida_pre_MAPE_info_y_head, leida_pre_RMSE_info, min(per_list)
+
+
+def test_regression(model, train_features, train_ways_segment_volume_dict,
+                     test_ways_segment_volume_dict, unnormed_ways_segment_volume_dict, volume_sqrt_var, volume_mean, sadj, fadj, config ):
+    epochs = config['epochs']
+
+    train_ways_segment_list = list(train_ways_segment_volume_dict.keys())
+    all_epoch_mape_y,all_epoch_mape_y_head, all_epoch_RMSE = [], [], []
+    t = perf_counter()
+    per_list = []
+    train_ways_segment_vec_dict = {}
+
+    model.eval()
+    output = model(train_features, sadj, fadj)
+
+    for i, item in enumerate(train_ways_segment_list):
+        train_ways_segment_vec_dict[item] = output[:, item, :]
+
+
+    print('Testing...')
+    with open('jinan/test_log.txt', 'a', encoding='utf-8') as f:
+        with torch.no_grad():
+            leida_pre_MAPE_info_y, leida_pre_MAPE_info_y_head,leida_pre_RMSE_info = evaluate_metric(epochs, output, train_ways_segment_volume_dict, train_ways_segment_vec_dict, test_ways_segment_volume_dict, unnormed_ways_segment_volume_dict, args.topk, volume_sqrt_var, volume_mean)
+
+            print("MAPE_y: {}".format(leida_pre_MAPE_info_y))
+            print("MAPE_y_head: {}".format(leida_pre_MAPE_info_y_head))
+            print("RMSE: {}".format(leida_pre_RMSE_info))
+
+            print("mean MAPE_y: {}".format(calc_avg_dict_value(leida_pre_MAPE_info_y)))
+            print("mean MAPE_y_head: {}".format(calc_avg_dict_value(leida_pre_MAPE_info_y_head)))
+            print("mean RMSE: {}".format(calc_avg_dict_value(leida_pre_RMSE_info)))
+
+            per_list.append(calc_avg_dict_value(leida_pre_MAPE_info_y))
+
+            f.write("mean MAPE_y: {}\n".format(calc_avg_dict_value(leida_pre_MAPE_info_y)))
+            f.write("mean MAPE_y_head: {}\n".format(calc_avg_dict_value(leida_pre_MAPE_info_y_head)))
+            f.write("mean RMSE: {}\n".format(calc_avg_dict_value(leida_pre_RMSE_info)))
+            all_epoch_mape_y.append(calc_avg_dict_value(leida_pre_MAPE_info_y))
+            all_epoch_mape_y_head.append(calc_avg_dict_value(leida_pre_MAPE_info_y_head))
+            all_epoch_RMSE.append(calc_avg_dict_value(leida_pre_RMSE_info))
+    train_time = perf_counter()-t
 
 
 if __name__=="__main__":

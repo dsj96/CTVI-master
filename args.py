@@ -2,7 +2,7 @@
 Descripttion: 
 version: 
 Date: 2021-06-14 10:36:26
-LastEditTime: 2021-06-16 09:19:26
+LastEditTime: 2021-07-14 16:45:52
 '''
 import argparse
 import torch
@@ -16,7 +16,7 @@ def get_args():
 
     parser.add_argument('--seed', type=int, default=0, help='Random seed.')
 
-    parser.add_argument('--epochs', type=int, default=10,
+    parser.add_argument('--epochs', type=int, default=2,
                         help='Number of epochs to train.')
 
     parser.add_argument('--lr', type=float, default=0.005,
@@ -61,7 +61,7 @@ def get_args():
     parser.add_argument('--degree', type=int, default=2,
                         help='degree of the approximation.')
 
-    parser.add_argument('--num_slice', type=int, default=24, # 12 denotes 12 slice in a day, max to 120
+    parser.add_argument('--num_slice', type=int, default=12, # 12 denotes 12 slice in a day, max to 120
                         help='take the num_slice G into consideration.') #
 
     parser.add_argument('--num_head', type=int, default=3,
