@@ -593,7 +593,7 @@ def train_regression(model, train_features, train_ways_segment_volume_dict,
         optimizer.step()
 
         if (epoch) % 2 == 0:
-            print('validing...')
+            print('Validating...')
             with open('jinan/valid_log.txt', 'a', encoding='utf-8') as f:
                 with torch.no_grad():
                     train_ways_segment_vec_dict = {}
