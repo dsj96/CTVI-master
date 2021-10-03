@@ -1,5 +1,5 @@
 # CTVI-master
-For  ICDM 2021.
+For  ICDM 2021. Accepted as short paper.
 
 The implementation of the CTVI model(**C**itywide **T**raffic **V**olume **I**nference).
 
@@ -61,4 +61,9 @@ In each file:
 # Training and Evaluate
 You can train and evaluate the model by run ```jinan_optuna.py``` file.
 
+# Cite
+Please cite our paper if you find this code useful for your research:
+```
+update later...
+```
 
