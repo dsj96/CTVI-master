@@ -155,66 +155,6 @@ def objective_volume_current(train_ways_segment_volume_dict, train_ways_segment_
     return loss_term
 
 
-def objective_volume_daily(train_ways_segment_volume_dict, train_ways_segment_vec_dict, topk, negk):
-    pre_volume  = []
-    true_volume = []
-    loss_term = 0.
-    for k1,v1 in train_ways_segment_vec_dict.items():
-        num_slice = v1.shape[0]
-        daily1_score_dict, daily2_score_dict = {}, {}
-        for i in range(num_slice):
-            for k2, v2 in train_ways_segment_vec_dict.items():
-                if(k1 != k2):
-                    if i < 12:
-                        break
-                    elif i < 12*2:
-                        daily1_score   = torch.cosine_similarity(v1[i-12], v2[i-12], dim=-1)
-                        daily1_score_dict[k2]   = daily1_score
-                    else:
-                        daily1_score   = torch.cosine_similarity(v1[i-12], v2[i-12], dim=-1)
-                        daily2_score   = torch.cosine_similarity(v1[i-12*2], v2[i-12*2], dim=-1)
-                        daily1_score_dict[k2]  = daily1_score
-                        daily2_score_dict[k2]  = daily2_score
-
-            daily1_sum_volume_max, daily1_sum_sim_score  =  0, .0
-            daily2_sum_volume_max, daily2_sum_sim_score  =  0, .0
-
-            if i < 12:
-                continue
-            elif i < 12*2:
-                daily1_sorted_score_dict_max = sorted(daily1_score_dict.items(), key=lambda item:item[1], reverse = True)[:topk]
-
-                for truple in daily1_sorted_score_dict_max:
-                    daily1_sum_volume_max = daily1_sum_volume_max + train_ways_segment_volume_dict[truple[0]][i-12]*truple[1]
-                    daily1_sum_sim_score = daily1_sum_sim_score + truple[1]
-                daily1_pre_volume = daily1_sum_volume_max / daily1_sum_sim_score
-                loss_term = abs(train_ways_segment_volume_dict[k1][i] - daily1_pre_volume)**3 + loss_term
-
-            else:
-                daily1_sorted_score_dict_max = sorted(daily1_score_dict.items(), key=lambda item:item[1], reverse = True)[:topk]
-                daily2_sorted_score_dict_max = sorted(daily2_score_dict.items(), key=lambda item:item[1], reverse = True)[:topk]
-
-                for truple in daily1_sorted_score_dict_max:
-                    daily1_sum_volume_max = daily1_sum_volume_max + train_ways_segment_volume_dict[truple[0]][i-12]*truple[1]
-                    daily1_sum_sim_score = daily1_sum_sim_score + truple[1]
-                daily1_pre_volume = daily1_sum_volume_max / daily1_sum_sim_score
-                loss_term = abs(train_ways_segment_volume_dict[k1][i] - daily1_pre_volume)**3 + loss_term
-
-                for truple in daily2_sorted_score_dict_max:
-                    daily2_sum_volume_max = daily2_sum_volume_max + train_ways_segment_volume_dict[truple[0]][i-48]*truple[1]
-                    daily2_sum_sim_score = daily2_sum_sim_score + truple[1]
-                daily2_pre_volume = daily2_sum_volume_max / daily2_sum_sim_score
-                loss_term = abs((train_ways_segment_volume_dict[k1][i] - daily2_pre_volume))**3 + loss_term
-    return loss_term
-
-
-
-
-
-
-
-
-
 
 
 
