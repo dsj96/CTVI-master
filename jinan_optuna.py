@@ -44,9 +44,6 @@ def objective(trial):
         "epochs" : trial.suggest_int('epochs',  10, 10),
         "hy_RW"  : trial.suggest_uniform('hy_RW' , 0.1, 10),
         "hy_volume_current" : trial.suggest_uniform('hy_volume_current' , 0.1, 10),
-        "hy_volume_recent"  : trial.suggest_uniform('hy_volume_recent' , 0.1, 10),
-        "hy_volume_daily"   : trial.suggest_uniform('hy_volume_daily' ,  0.1, 10),
-        "hy_volume_weekly"  : trial.suggest_uniform('hy_volume_weekly' ,  0.1, 10),
     }
 
     args = get_args()
@@ -209,9 +206,11 @@ def train_regression(model, train_features, train_ways_segment_volume_dict,
 
         for i, item in enumerate(train_ways_segment_list):
             train_ways_segment_vec_dict[item] = output[:, item, :]
+            
+        loss_train_rw = objective_rw(train_ways_segment_vec_dict, args.negk, adj_weight_dict, output, vocab_list, word_freqs)
         loss_train_volume_current = objective_volume_current(train_ways_segment_volume_dict, train_ways_segment_vec_dict, args.topk, args.negk)
 
-        loss = hy_volume_current*loss_train_volume_current
+        loss = hy_volume_current*loss_train_volume_current + hy_RW*loss_train_rw
 
         loss.backward()
         optimizer.step()
