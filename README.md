@@ -12,7 +12,7 @@ Paper: ```Temporal Multi-view Graph Convolutional Networks for Citywide Traffic 
 
 ## Clone this repo
 ```
-git clone https://anonymous.4open.science/r/CTVI-master-6687
+git clone https://github.com/dsj96/CTVI-master.git
 ```
 
 ## Function
