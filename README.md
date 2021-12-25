@@ -64,6 +64,12 @@ You can train and evaluate the model by run ```jinan_optuna.py``` file.
 # Cite
 Please cite our paper if you find this code useful for your research:
 ```
-update later...
+@inproceedings{dai2021temporal,
+  title={Temporal Multi-view Graph Convolutional Networks for Citywide Traffic Volume Inference},
+  author={Dai, Shaojie and Wang, Jinshuai and Huang, Chao and Yu, Yanwei and Dong, Junyu},
+  booktitle={ICDM},
+  pages={1048--1053},
+  year={2021}
+}
 ```
 
