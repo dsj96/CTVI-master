@@ -45,7 +45,7 @@ def construct_graph(fname, features, topk):
 
 def generate_knn(fname, features):
     for topk in range(2, 10):
-        features = features.numpy()
+        # features = features.numpy()
         construct_graph(fname, features, topk) # write txt file
         f1 = open(fname + '/knn/tmp.txt','r')
         f2 = open(fname + '/knn/c' + str(topk) + '.txt', 'w')
@@ -86,4 +86,5 @@ def load_feature_graph(fname, features, k_knn):
 
 
 if __name__ == '__main__':
+    features = read_pkl('./jinan/features.pkl')
     generate_knn('jinan', features) # features is the node features, type=tensor shape=num_node*num_feat
